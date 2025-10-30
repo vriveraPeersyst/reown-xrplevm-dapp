@@ -1,6 +1,6 @@
 'use client'
 
-import { wagmiAdapter, projectId } from '@/config/wagmi'
+import { wagmiAdapter, projectId, xrplevmMainnet, appKitNetworks } from '@/config/wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createAppKit } from '@reown/appkit/react'
 import { xrplevmTestnet } from '@reown/appkit/networks'
@@ -17,7 +17,7 @@ if (!projectId) {
 // App metadata for Reown
 const metadata = {
   name: 'XRPL EVM Reown DApp',
-  description: 'A simple dApp with social login and XRP transfers on XRPL EVM Testnet',
+  description: 'A simple dApp with social login and XRP transfers on XRPL EVM networks',
   url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   icons: ['https://avatars.githubusercontent.com/u/212396159?s=400&u=e6209e7288089b693ce17849cf4ea1e895ec3729&v=4']
 }
@@ -26,15 +26,15 @@ const metadata = {
 const modal = createAppKit({
   adapters: [wagmiAdapter],
   projectId,
-  networks: [xrplevmTestnet],
-  defaultNetwork: xrplevmTestnet,
+  networks: [xrplevmMainnet, xrplevmTestnet],
+  defaultNetwork: xrplevmMainnet,
   metadata: metadata,
   featuredWalletIds: [
     'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96', // MetaMask
   ],
   features: {
-    analytics: true, // Optional
-    email: false, // Disable email login
+    analytics: true,
+    email: false,
     socials: [
       'google',
       'x',
@@ -43,10 +43,12 @@ const modal = createAppKit({
       'apple',
     ],
     emailShowWallets: true,
+    onramp: false,
+    swaps: false,
   },
-  themeMode: 'light',
+  themeMode: 'dark',
   themeVariables: {
-    '--w3m-accent': '#1a73e8',
+    '--w3m-accent': '#7919FF',
     '--w3m-border-radius-master': '8px',
   },
 })

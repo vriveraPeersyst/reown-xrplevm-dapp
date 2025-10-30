@@ -6,17 +6,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "send-tx": "node scripts/send-transaction.js"
   },
   "dependencies": {
-    "@reown/appkit": "^1.8.12",
-    "@reown/appkit-adapter-wagmi": "^1.8.12",
-    "@tanstack/react-query": "^5.90.5",
+    "@reown/appkit": "^1.7.6",
+    "@reown/appkit-adapter-wagmi": "^1.7.6",
+    "@tanstack/react-query": "^5.81.5",
+    "@web3modal/react": "^2.7.1",
+    "@web3modal/wagmi": "^4.1.11",
+    "ethers": "^6.15.0",
     "next": "16.0.1",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "viem": "^2.38.5",
-    "wagmi": "^2.19.1"
+    "viem": "^2.30.0",
+    "wagmi": "^2.15.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

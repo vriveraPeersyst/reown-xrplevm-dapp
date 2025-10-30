@@ -1,15 +1,28 @@
 'use client'
 
-import { useState } from 'react'
-import { useAccount, useSendTransaction, useWaitForTransactionReceipt } from 'wagmi'
-import { parseEther, isAddress } from 'viem'
+import { useState, useEffect } from 'react'
+import { useAccount, useSendTransaction, useWaitForTransactionReceipt, useBalance, useChainId } from 'wagmi'
+import { parseEther, isAddress, formatEther } from 'viem'
+import { useAppKit } from '@reown/appkit/react'
+import { xrplevmTestnet } from '@reown/appkit/networks'
+import { xrplevmMainnet } from '@/config/wagmi'
 
 export default function TransferXRP() {
   const { address, isConnected } = useAccount()
+  const { open } = useAppKit()
+  const chainId = useChainId()
+  const { data: balance } = useBalance({
+    address: address,
+  })
   const [recipient, setRecipient] = useState('')
   const [amount, setAmount] = useState('')
   const [errors, setErrors] = useState<{recipient?: string, amount?: string}>({})
 
+  // Check if the current network is either XRPL EVM mainnet or testnet
+  const isCorrectNetwork = chainId === xrplevmTestnet.id || chainId === xrplevmMainnet.id
+  const currentNetwork = chainId === xrplevmMainnet.id ? 'XRPL EVM Mainnet' : 'XRPL EVM Testnet'
+  const isMainnet = chainId === xrplevmMainnet.id
+  
   const { 
     sendTransaction, 
     data: hash, 
@@ -37,19 +50,36 @@ export default function TransferXRP() {
       newErrors.amount = 'Amount is required'
     } else if (isNaN(Number(amount)) || Number(amount) <= 0) {
       newErrors.amount = 'Amount must be a positive number'
+    } else if (balance && parseEther(amount) > balance.value) {
+      newErrors.amount = `Insufficient balance. You have ${formatEther(balance.value)} XRP`
+    } else if (!isMainnet && Number(amount) > 1000) {
+      newErrors.amount = 'Amount too large. Please enter a smaller amount for testing'
+    } else if (isMainnet && Number(amount) > 10000) {
+      newErrors.amount = 'Amount too large. Please enter a smaller amount'
     }
     
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
-  const handleTransfer = async () => {
+  const handleTransfer = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     if (!validateForm()) return
     
     try {
+      const value = parseEther(amount)
+      
+      console.log('🚀 Sending XRP:', {
+        to: recipient,
+        amount: amount,
+        valueWei: value.toString(),
+        chainId,
+      })
+      
+      // Simple transaction - let wagmi handle gas automatically
       sendTransaction({
         to: recipient as `0x${string}`,
-        value: parseEther(amount),
+        value,
       })
     } catch (error) {
       console.error('Transfer failed:', error)
@@ -61,6 +91,21 @@ export default function TransferXRP() {
     setAmount('')
     setErrors({})
   }
+
+  // Handle success
+  useEffect(() => {
+    if (isConfirmed) {
+      console.log('✅ Transaction successful!')
+      resetForm()
+    }
+  }, [isConfirmed])
+
+  // Handle error  
+  useEffect(() => {
+    if (sendError) {
+      console.error('❌ Transaction error:', sendError)
+    }
+  }, [sendError])
 
   if (!isConnected) {
     return (
@@ -79,9 +124,75 @@ export default function TransferXRP() {
     )
   }
 
+  if (!isCorrectNetwork) {
+    return (
+      <div className="bg-[#2A2A2A] rounded-2xl p-6 sm:p-8 border border-red-500/30">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 mx-auto bg-red-500/10 rounded-full flex items-center justify-center">
+            <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-red-400 mb-2">Wrong Network</h3>
+            <p className="text-sm text-gray-400 mb-4">
+              Please switch to XRPL EVM Mainnet or Testnet to transfer XRP
+            </p>
+            <button
+              onClick={async () => {
+                try {
+                  // attempt to switch/add XRPL EVM mainnet in user's injected wallet
+                  const { switchToXRPLEVM } = await import('@/utils/network')
+                  await switchToXRPLEVM()
+                } catch (e) {
+                  // fall back to opening networks modal
+                }
+                open({ view: 'Networks' })
+              }}
+              className="px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl transition-colors font-medium"
+            >
+              Switch Network
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-[#2A2A2A] rounded-2xl p-6 sm:p-8 border border-[#333333] hover:border-[#7919FF]/30 transition-all duration-300">
       <div className="space-y-4 sm:space-y-6">
+        {/* Debug Info (Remove in production) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+            <p className="text-xs text-yellow-400 font-mono">
+              Debug: Chain ID: {chainId} | Network: {currentNetwork} | Valid: {isCorrectNetwork ? 'Yes' : 'No'}
+            </p>
+          </div>
+        )}
+
+        {/* Network Display */}
+        <div className="bg-black/40 rounded-lg p-3 sm:p-4 border border-[#333333]">
+          <div className="flex items-center justify-between">
+            <span className="text-xs sm:text-sm text-gray-400">Connected Network:</span>
+            <span className={`text-sm sm:text-base font-semibold ${isMainnet ? 'text-green-400' : 'text-blue-400'}`}>
+              {currentNetwork}
+            </span>
+          </div>
+        </div>
+
+        {/* Balance Display */}
+        {balance && (
+          <div className="bg-black/40 rounded-lg p-3 sm:p-4 border border-[#333333]">
+            <div className="flex items-center justify-between">
+              <span className="text-xs sm:text-sm text-gray-400">Your Balance:</span>
+              <span className="text-sm sm:text-base font-semibold text-white">
+                {Number(formatEther(balance.value)).toFixed(4)} XRP
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Recipient Address Input */}
         <div>
           <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
@@ -127,6 +238,44 @@ export default function TransferXRP() {
               XRP
             </span>
           </div>
+          
+          {/* Quick Amount Buttons */}
+          <div className="flex gap-2 mt-2">
+            <button
+              type="button"
+              onClick={() => setAmount('0.1')}
+              className="px-2 py-1 bg-[#333333] hover:bg-[#3A3A3A] text-gray-300 rounded text-xs transition-colors"
+            >
+              0.1
+            </button>
+            <button
+              type="button"
+              onClick={() => setAmount('1')}
+              className="px-2 py-1 bg-[#333333] hover:bg-[#3A3A3A] text-gray-300 rounded text-xs transition-colors"
+            >
+              1
+            </button>
+            <button
+              type="button"
+              onClick={() => setAmount('5')}
+              className="px-2 py-1 bg-[#333333] hover:bg-[#3A3A3A] text-gray-300 rounded text-xs transition-colors"
+            >
+              5
+            </button>
+            {balance && Number(formatEther(balance.value)) > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  const maxAmount = Number(formatEther(balance.value)) - 0.001 // Leave some for gas
+                  setAmount(Math.max(0, maxAmount).toFixed(4))
+                }}
+                className="px-2 py-1 bg-[#7919FF]/20 hover:bg-[#7919FF]/30 text-[#C890FF] rounded text-xs transition-colors"
+              >
+                Max
+              </button>
+            )}
+          </div>
+          
           {errors.amount && (
             <p className="text-red-400 text-xs sm:text-sm mt-1.5 flex items-center gap-1">
               <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -139,6 +288,7 @@ export default function TransferXRP() {
 
         {/* Send Button */}
         <button
+          type="button"
           onClick={handleTransfer}
           disabled={isSending || isConfirming}
           className="w-full py-3 sm:py-4 bg-gradient-to-r from-[#C890FF] to-[#7919FF] hover:from-[#C890FF] hover:to-[#9D4FFF] text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100 font-semibold text-sm sm:text-base"
@@ -168,8 +318,19 @@ export default function TransferXRP() {
         {sendError && (
           <div className="p-3 sm:p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
             <p className="text-xs sm:text-sm text-red-400">
-              <strong>Error:</strong> {sendError.message}
+              <strong>Transaction Failed:</strong> 
+              {sendError.message.includes('insufficient funds') ? 
+                ' Insufficient balance to complete this transaction.' :
+                sendError.message.includes('Load failed') ?
+                ' Network error. Please check your connection and try again.' :
+                ` ${sendError.message}`
+              }
             </p>
+            {sendError.message.includes('Load failed') && (
+              <p className="text-xs text-gray-400 mt-2">
+                💡 Try using a smaller amount or check if you have enough XRP for gas fees.
+              </p>
+            )}
           </div>
         )}
 
@@ -196,7 +357,7 @@ export default function TransferXRP() {
                       Transaction Confirmed!
                     </p>
                     <a
-                      href={`https://explorer.testnet.xrplevm.org/tx/${hash}`}
+                      href={`${isMainnet ? 'https://explorer.xrplevm.org' : 'https://explorer.testnet.xrplevm.org'}/tx/${hash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs sm:text-sm text-[#C890FF] hover:text-[#7919FF] underline inline-flex items-center gap-1 break-all"

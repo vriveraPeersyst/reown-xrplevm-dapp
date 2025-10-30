@@ -1,15 +1,25 @@
 'use client'
 
 import { useAppKit } from '@reown/appkit/react'
-import { useAccount, useDisconnect, useBalance } from 'wagmi'
+import { useAccount, useDisconnect, useBalance, useChainId } from 'wagmi'
+import { xrplevmTestnet } from '@reown/appkit/networks'
+import { switchToXRPLEVM } from '@/utils/network'
+import { xrplevmMainnet } from '@/config/wagmi'
 
 export default function ConnectWallet() {
   const { open } = useAppKit()
   const { address, isConnected, connector } = useAccount()
   const { disconnect } = useDisconnect()
+  const chainId = useChainId()
   const { data: balance, isLoading: balanceLoading } = useBalance({ 
     address: address as `0x${string}` 
   })
+
+  // Check if the current network is either XRPL EVM mainnet or testnet
+  const isCorrectNetwork = chainId === xrplevmTestnet.id || chainId === xrplevmMainnet.id
+  const currentNetwork = chainId === xrplevmMainnet.id ? 'XRPL EVM Mainnet' : 
+                        chainId === xrplevmTestnet.id ? 'XRPL EVM Testnet' : 'Unknown Network'
+  const isMainnet = chainId === xrplevmMainnet.id
 
   if (!isConnected) {
     return (
@@ -60,6 +70,42 @@ export default function ConnectWallet() {
           </button>
         </div>
 
+        {/* Network Status */}
+        <div className={`p-3 rounded-lg border ${
+          isCorrectNetwork 
+            ? 'bg-green-500/10 border-green-500/30' 
+            : 'bg-red-500/10 border-red-500/30'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${
+                isCorrectNetwork ? 'bg-green-500' : 'bg-red-500'
+              }`}></div>
+              <span className={`text-xs sm:text-sm ${
+                isCorrectNetwork ? (isMainnet ? 'text-green-400' : 'text-blue-400') : 'text-gray-300'
+              }`}>
+                {isCorrectNetwork ? currentNetwork : 'Wrong Network'}
+              </span>
+            </div>
+            {!isCorrectNetwork && (
+              <button
+                onClick={async () => {
+                  // try to switch/add XRPL EVM first, then open the networks modal as a fallback
+                  try {
+                    await switchToXRPLEVM()
+                  } catch (e) {
+                    // ignore and open modal
+                  }
+                  open({ view: 'Networks' })
+                }}
+                className="px-2 py-1 bg-[#7919FF]/20 hover:bg-[#7919FF]/30 text-[#C890FF] rounded text-xs"
+              >
+                Switch
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Address Display */}
         <div>
           <label className="block text-xs sm:text-sm font-medium text-gray-400 mb-2">
@@ -100,12 +146,20 @@ export default function ConnectWallet() {
         </div>
 
         {/* Account Management */}
-        <button
-          onClick={() => open({ view: 'Account' })}
-          className="w-full px-4 py-3 bg-[#333333] hover:bg-[#3A3A3A] border border-[#444444] rounded-lg text-sm sm:text-base transition-colors font-medium"
-        >
-          Manage Account
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => open({ view: 'Networks' })}
+            className="flex-1 px-4 py-3 bg-[#7919FF]/20 hover:bg-[#7919FF]/30 border border-[#7919FF]/30 rounded-lg text-sm sm:text-base transition-colors font-medium text-[#C890FF]"
+          >
+            Network
+          </button>
+          <button
+            onClick={() => open({ view: 'Account' })}
+            className="flex-1 px-4 py-3 bg-[#333333] hover:bg-[#3A3A3A] border border-[#444444] rounded-lg text-sm sm:text-base transition-colors font-medium"
+          >
+            Account
+          </button>
+        </div>
       </div>
     </div>
   )
