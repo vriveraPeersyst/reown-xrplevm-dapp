@@ -1,25 +1,21 @@
 'use client'
 
-import { useAppKit } from '@reown/appkit/react'
-import { useAccount, useDisconnect, useBalance, useChainId } from 'wagmi'
+import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
+import { useDisconnect, useBalance, useChainId } from 'wagmi'
 import { xrplevmTestnet } from '@reown/appkit/networks'
-import { switchToXRPLEVM } from '@/utils/network'
-import { xrplevmMainnet } from '@/config/wagmi'
 
 export default function ConnectWallet() {
   const { open } = useAppKit()
-  const { address, isConnected, connector } = useAccount()
+  const { address, isConnected } = useAppKitAccount()
   const { disconnect } = useDisconnect()
   const chainId = useChainId()
   const { data: balance, isLoading: balanceLoading } = useBalance({ 
     address: address as `0x${string}` 
   })
 
-  // Check if the current network is either XRPL EVM mainnet or testnet
-  const isCorrectNetwork = chainId === xrplevmTestnet.id || chainId === xrplevmMainnet.id
-  const currentNetwork = chainId === xrplevmMainnet.id ? 'XRPL EVM Mainnet' : 
-                        chainId === xrplevmTestnet.id ? 'XRPL EVM Testnet' : 'Unknown Network'
-  const isMainnet = chainId === xrplevmMainnet.id
+  // Check if the current network is XRPL EVM Testnet
+  const isCorrectNetwork = chainId === xrplevmTestnet.id
+  const currentNetwork = chainId === xrplevmTestnet.id ? 'XRPL EVM Testnet' : 'Wrong Network'
 
   if (!isConnected) {
     return (
@@ -58,8 +54,8 @@ export default function ConnectWallet() {
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-3 h-3 bg-[#32E685] rounded-full flex-shrink-0 animate-pulse"></div>
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-gray-400">Connected via</p>
-              <p className="text-sm sm:text-base font-semibold truncate">{connector?.name}</p>
+              <p className="text-xs sm:text-sm text-gray-400">Connected</p>
+              <p className="text-sm sm:text-base font-semibold truncate">Wallet Connected</p>
             </div>
           </div>
           <button
@@ -82,22 +78,14 @@ export default function ConnectWallet() {
                 isCorrectNetwork ? 'bg-green-500' : 'bg-red-500'
               }`}></div>
               <span className={`text-xs sm:text-sm ${
-                isCorrectNetwork ? (isMainnet ? 'text-green-400' : 'text-blue-400') : 'text-gray-300'
+                isCorrectNetwork ? 'text-blue-400' : 'text-gray-300'
               }`}>
-                {isCorrectNetwork ? currentNetwork : 'Wrong Network'}
+                {currentNetwork}
               </span>
             </div>
             {!isCorrectNetwork && (
               <button
-                onClick={async () => {
-                  // try to switch/add XRPL EVM first, then open the networks modal as a fallback
-                  try {
-                    await switchToXRPLEVM()
-                  } catch (e) {
-                    // ignore and open modal
-                  }
-                  open({ view: 'Networks' })
-                }}
+                onClick={() => open({ view: 'Networks' })}
                 className="px-2 py-1 bg-[#7919FF]/20 hover:bg-[#7919FF]/30 text-[#C890FF] rounded text-xs"
               >
                 Switch

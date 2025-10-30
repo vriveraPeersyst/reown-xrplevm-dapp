@@ -1,6 +1,6 @@
 'use client'
 
-import { wagmiAdapter, projectId, xrplevmMainnet } from '@/config/wagmi'
+import { wagmiAdapter, projectId } from '@/config/wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createAppKit } from '@reown/appkit/react'
 import { xrplevmTestnet } from '@reown/appkit/networks'
@@ -17,7 +17,7 @@ if (!projectId) {
 // Set up metadata
 const metadata = {
   name: 'XRPL EVM Reown DApp',
-  description: 'A simple dApp with social login and XRP transfers on XRPL EVM networks',
+  description: 'A simple dApp with social login and XRP transfers on XRPL EVM Testnet',
   url: 'https://reown-xrplevm-dapp.vercel.app',
   icons: ['https://avatars.githubusercontent.com/u/212396159?s=400&u=e6209e7288089b693ce17849cf4ea1e895ec3729&v=4']
 }
@@ -26,8 +26,8 @@ const metadata = {
 const modal = createAppKit({
   adapters: [wagmiAdapter],
   projectId,
-  networks: [xrplevmMainnet, xrplevmTestnet],
-  defaultNetwork: xrplevmMainnet,
+  networks: [xrplevmTestnet],
+  defaultNetwork: xrplevmTestnet,
   metadata: metadata,
   featuredWalletIds: [
     'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96', // MetaMask

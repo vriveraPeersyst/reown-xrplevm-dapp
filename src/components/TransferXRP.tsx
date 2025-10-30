@@ -5,7 +5,6 @@ import { useAccount, useSendTransaction, useWaitForTransactionReceipt, useBalanc
 import { parseEther, isAddress, formatEther } from 'viem'
 import { useAppKit } from '@reown/appkit/react'
 import { xrplevmTestnet } from '@reown/appkit/networks'
-import { xrplevmMainnet } from '@/config/wagmi'
 
 export default function TransferXRP() {
   const { address, isConnected } = useAccount()
@@ -18,10 +17,9 @@ export default function TransferXRP() {
   const [amount, setAmount] = useState('')
   const [errors, setErrors] = useState<{recipient?: string, amount?: string}>({})
 
-  // Check if the current network is either XRPL EVM mainnet or testnet
-  const isCorrectNetwork = chainId === xrplevmTestnet.id || chainId === xrplevmMainnet.id
-  const currentNetwork = chainId === xrplevmMainnet.id ? 'XRPL EVM Mainnet' : 'XRPL EVM Testnet'
-  const isMainnet = chainId === xrplevmMainnet.id
+  // Check if the current network is XRPL EVM Testnet
+  const isCorrectNetwork = chainId === xrplevmTestnet.id
+  const currentNetwork = chainId === xrplevmTestnet.id ? 'XRPL EVM Testnet' : 'Wrong Network'
   
   const { 
     sendTransaction, 
@@ -52,10 +50,8 @@ export default function TransferXRP() {
       newErrors.amount = 'Amount must be a positive number'
     } else if (balance && parseEther(amount) > balance.value) {
       newErrors.amount = `Insufficient balance. You have ${formatEther(balance.value)} XRP`
-    } else if (!isMainnet && Number(amount) > 1000) {
+    } else if (Number(amount) > 1000) {
       newErrors.amount = 'Amount too large. Please enter a smaller amount for testing'
-    } else if (isMainnet && Number(amount) > 10000) {
-      newErrors.amount = 'Amount too large. Please enter a smaller amount'
     }
     
     setErrors(newErrors)
@@ -142,17 +138,8 @@ export default function TransferXRP() {
               Please switch to XRPL EVM Mainnet or Testnet to transfer XRP
             </p>
             <button
-              onClick={async () => {
-                try {
-                  // attempt to switch/add XRPL EVM mainnet in user's injected wallet
-                  const { switchToXRPLEVM } = await import('@/utils/network')
-                  await switchToXRPLEVM()
-                } catch (e) {
-                  // fall back to opening networks modal
-                }
-                open({ view: 'Networks' })
-              }}
-              className="px-6 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl transition-colors font-medium"
+              onClick={() => open({ view: 'Networks' })}
+              className="px-3 py-1.5 sm:px-4 sm:py-2 bg-[#7919FF]/20 hover:bg-[#7919FF]/30 text-[#C890FF] rounded-lg text-xs sm:text-sm font-medium transition-colors"
             >
               Switch Network
             </button>
@@ -178,7 +165,7 @@ export default function TransferXRP() {
         <div className="bg-black/40 rounded-lg p-3 sm:p-4 border border-[#333333]">
           <div className="flex items-center justify-between">
             <span className="text-xs sm:text-sm text-gray-400">Connected Network:</span>
-            <span className={`text-sm sm:text-base font-semibold ${isMainnet ? 'text-green-400' : 'text-blue-400'}`}>
+            <span className="text-sm sm:text-base font-semibold text-blue-400">
               {currentNetwork}
             </span>
           </div>
@@ -360,7 +347,7 @@ export default function TransferXRP() {
                       Transaction Confirmed!
                     </p>
                     <a
-                      href={`${isMainnet ? 'https://explorer.xrplevm.org' : 'https://explorer.testnet.xrplevm.org'}/tx/${hash}`}
+                      href={`https://explorer.testnet.xrplevm.org/tx/${hash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs sm:text-sm text-[#C890FF] hover:text-[#7919FF] underline inline-flex items-center gap-1 break-all"
