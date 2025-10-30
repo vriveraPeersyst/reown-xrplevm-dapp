@@ -1,334 +1,273 @@
 # XRPL EVM Reown DApp
 
-A Next.js dApp with **social login** (Google, X/Twitter, GitHub, Discord, Apple) and XRP transfers on **XRPL EVM Testnet**, powered by Reown AppKit (formerly WalletConnect).
+A modern decentralized application (dApp) built with Next.js, Reown AppKit, and Wagmi, designed for seamless social login and XRP transfers on the XRPL EVM Sidechain.
+
+## ⚠️ Important: Dependency Versions
+
+**This project requires EXACT dependency versions to function properly.** The Reown AppKit ecosystem and Wagmi libraries are highly sensitive to version compatibility. Using different versions may result in:
+
+- Runtime errors and type mismatches
+- Connection issues with wallets
+- React hydration errors
+- Build failures
+- Unexpected behavior in production
+
+### Critical Version Requirements
+
+Please ensure you use **exactly** these versions:
+
+```json
+{
+  "@reown/appkit": "1.7.6",
+  "@reown/appkit-adapter-wagmi": "1.7.6",
+  "@tanstack/react-query": "5.81.5",
+  "next": "15.3.3",
+  "react": "^18.3.1",
+  "react-dom": "^18.3.1",
+  "viem": "2.30.0",
+  "wagmi": "2.15.4"
+}
+```
+
+**DO NOT** upgrade dependencies without thoroughly testing. The `package.json` includes specific overrides to ensure compatibility:
+
+```json
+"overrides": {
+  "react": "^18.3.1",
+  "react-dom": "^18.3.1",
+  "@types/react": "^18.3.1",
+  "@types/react-dom": "^18.3.1",
+  "@wagmi/core": "2.17.2",
+  "@wagmi/connectors": "5.8.3"
+}
+```
+
+These overrides are **critical** for preventing conflicts in the dependency tree.
 
 ## Features
 
-✨ **Social Authentication**
-- Sign in with Google, X (Twitter), GitHub, Discord, or Apple
-- No seed phrases required for non-crypto users
-- Seamless onboarding experience
+✨ **Social Login Integration**
+- Seamless authentication with popular social providers
+- Powered by Reown AppKit
 
-🔐 **Wallet Support**
-- MetaMask and other browser wallets
-- WalletConnect v2 compatible wallets
-- Account abstraction for social users
+🔗 **Multi-Wallet Support**
+- Compatible with MetaMask, WalletConnect, and other popular wallets
+- Easy wallet connection and management
 
 💸 **XRP Transfers**
-- Send XRP on XRPL EVM Testnet
+- Fast and low-cost XRP transfers on XRPL EVM Testnet
 - Real-time balance updates
-- Transaction history
+- User-friendly transfer interface
 
-🎨 **Modern UI**
+🎨 **Modern UI/UX**
 - Responsive design with Tailwind CSS
-- Gradient themes matching XRPL branding
-- Mobile-friendly interface
+- Beautiful gradient effects
+- Mobile-first approach
 
 ## Prerequisites
 
-- Node.js 18+ and npm/yarn
-- [Reown Cloud Account](https://cloud.reown.com) (free)
-- For local development: [ngrok](https://ngrok.com) or similar tunneling tool
+Before you begin, ensure you have the following installed:
 
-## Quick Start
+- **Node.js**: Version 18.x or higher (recommended: 20.x)
+- **npm**: Version 9.x or higher (or yarn/pnpm)
+- **Git**: For cloning the repository
 
-### 1. Clone and Install
+## Getting Started
+
+### 1. Clone the Repository
 
 ```bash
-cd reown-xrplevm-dapp
+git clone <your-repo-url>
+cd reown-xrpl-dapp
+```
+
+### 2. Install Dependencies
+
+**⚠️ IMPORTANT:** Use the `--legacy-peer-deps` flag or `--force` if needed to ensure exact versions are installed:
+
+```bash
 npm install
-# or
-yarn install
 ```
 
-### 2. Configure Environment
-
-Create a `.env.local` file:
+If you encounter peer dependency conflicts:
 
 ```bash
-# Get your Project ID from https://cloud.reown.com
-NEXT_PUBLIC_PROJECT_ID=your_reown_project_id_here
-
-# For local development with ngrok
-NEXT_PUBLIC_APP_URL=https://your-subdomain.ngrok-free.app
-
-# For production
-# NEXT_PUBLIC_APP_URL=https://yourdomain.com
+npm install --legacy-peer-deps
 ```
 
-### 3. Set Up Reown Cloud
+**DO NOT** use `npm install --save` or `npm update` as this may upgrade packages to incompatible versions.
 
-1. Go to [https://cloud.reown.com](https://cloud.reown.com)
-2. Create a new project
-3. Copy your **Project ID** to `.env.local`
-4. Configure social providers (see below)
+### 3. Environment Configuration
 
-### 4. Run Development Server
+Create a `.env.local` file in the root directory:
+
+```bash
+cp .env.local.example .env.local
+```
+
+Or create it manually with the following variables:
+
+```env
+# Reown Project ID (Get this from https://cloud.reown.com)
+NEXT_PUBLIC_PROJECT_ID=your_project_id_here
+
+# App URL for social auth callbacks
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# XRPL EVM Testnet RPC URL
+NEXT_PUBLIC_XRPL_RPC_URL=https://rpc.testnet.xrplevm.org/
+```
+
+#### Getting Your Reown Project ID
+
+1. Visit [Reown Cloud](https://cloud.reown.com)
+2. Create a new project or use an existing one
+3. Copy your Project ID
+4. Paste it into the `NEXT_PUBLIC_PROJECT_ID` variable in `.env.local`
+
+### 4. Run the Development Server
 
 ```bash
 npm run dev
 ```
 
-For local development with social login, use ngrok:
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+
+### 5. Build for Production
 
 ```bash
-# In a separate terminal
-ngrok http 3000
-
-# Copy the ngrok URL (e.g., https://abc123.ngrok-free.app)
-# Update NEXT_PUBLIC_APP_URL in .env.local
-# Restart your dev server
+npm run build
+npm start
 ```
 
-## Social Login Configuration
-
-### In Reown Cloud Dashboard
-
-1. Navigate to your project
-2. Go to **Settings** → **Authentication**
-3. Enable **Social Login**
-4. Configure each provider:
-
-#### Allowed Origins
-Add these URLs:
-- Development: `https://your-subdomain.ngrok-free.app`
-- Production: `https://yourdomain.com`
-
-#### Redirect URIs
-The redirect URI format for Reown is:
-```
-https://your-domain.com/__reown/auth
-```
-
-Add:
-- Development: `https://your-subdomain.ngrok-free.app/__reown/auth`
-- Production: `https://yourdomain.com/__reown/auth`
-
-### Social Provider Setup
-
-#### Google
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create OAuth 2.0 credentials
-3. Add authorized redirect URIs:
-   - `https://your-domain.com/__reown/auth`
-4. Copy Client ID to Reown dashboard
-
-#### GitHub
-1. Go to GitHub Settings → Developer Settings → OAuth Apps
-2. Create new OAuth App
-3. Set Authorization callback URL:
-   - `https://your-domain.com/__reown/auth`
-4. Copy Client ID and Secret to Reown dashboard
-
-#### X (Twitter)
-1. Go to [Twitter Developer Portal](https://developer.twitter.com)
-2. Create an app with OAuth 2.0
-3. Add redirect URI:
-   - `https://your-domain.com/__reown/auth`
-4. Copy Client ID and Secret to Reown dashboard
-
-#### Discord
-1. Go to [Discord Developer Portal](https://discord.com/developers/applications)
-2. Create new application
-3. Add OAuth2 redirect:
-   - `https://your-domain.com/__reown/auth`
-4. Copy Client ID and Secret to Reown dashboard
-
-#### Apple
-1. Go to [Apple Developer](https://developer.apple.com)
-2. Create Services ID
-3. Configure Sign in with Apple
-4. Add return URL:
-   - `https://your-domain.com/__reown/auth`
-5. Copy Service ID and configure in Reown dashboard
-
-## Architecture
-
-### Tech Stack
-
-- **Framework**: Next.js 14+ (App Router)
-- **Web3**: Wagmi v2 + Viem v2
-- **Authentication**: Reown AppKit v1.7.6
-- **State Management**: TanStack Query v5
-- **Styling**: Tailwind CSS
-- **TypeScript**: Latest
-
-### Project Structure
+## Project Structure
 
 ```
-src/
-├── app/
-│   ├── layout.tsx          # Root layout with ContextProvider
-│   ├── page.tsx            # Main landing page
-│   └── globals.css         # Global styles
-├── components/
-│   ├── ConnectWallet.tsx   # Wallet connection component
-│   └── TransferXRP.tsx     # XRP transfer component
-├── config/
-│   └── wagmi.ts           # Wagmi & AppKit configuration
-├── contexts/
-│   └── ContextProvider.tsx # Web3 context provider
-└── utils/
-    └── network.ts         # Network switching utilities
+reown-xrpl-dapp/
+├── src/
+│   ├── app/
+│   │   ├── globals.css          # Global styles
+│   │   ├── layout.tsx           # Root layout component
+│   │   └── page.tsx             # Home page
+│   ├── components/
+│   │   ├── ConnectWallet.tsx    # Wallet connection component
+│   │   └── TransferXRP.tsx      # XRP transfer component
+│   ├── config/
+│   │   └── wagmi.ts             # Wagmi and Reown AppKit configuration
+│   └── contexts/
+│       └── ContextProvider.tsx  # React Context providers
+├── public/                       # Static assets
+├── .env.local                    # Environment variables (create this)
+├── next.config.js                # Next.js configuration
+├── tailwind.config.js            # Tailwind CSS configuration
+├── tsconfig.json                 # TypeScript configuration
+└── package.json                  # Dependencies and scripts
 ```
 
-### Key Configuration Files
+## Key Technologies
 
-#### `src/config/wagmi.ts`
-Configures Wagmi adapter for XRPL EVM Testnet:
-```typescript
-import { cookieStorage, createStorage } from '@wagmi/core'
-import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
-import { xrplevmTestnet } from '@reown/appkit/networks'
+- **Next.js 15.3.3**: React framework with App Router
+- **React 18.3.1**: UI library
+- **TypeScript 5.7.2**: Type safety
+- **Reown AppKit 1.7.6**: Wallet connection and social login
+- **Wagmi 2.15.4**: React hooks for Ethereum
+- **Viem 2.30.0**: TypeScript Ethereum library
+- **Tailwind CSS**: Utility-first CSS framework
+- **TanStack Query 5.81.5**: Data fetching and state management
 
-export const networks = [xrplevmTestnet]
+## Configuration Files
 
-export const wagmiAdapter = new WagmiAdapter({
-  storage: createStorage({ storage: cookieStorage }),
-  ssr: true,
-  projectId,
-  networks,
-})
-```
+### `src/config/wagmi.ts`
 
-#### `src/contexts/ContextProvider.tsx`
-Creates AppKit modal with social login:
-```typescript
-const modal = createAppKit({
-  adapters: [wagmiAdapter],
-  projectId,
-  networks: [xrplevmTestnet],
-  defaultNetwork: xrplevmTestnet,
-  features: {
-    analytics: true,
-    email: false,
-    socials: ['google', 'x', 'github', 'discord', 'apple'],
-    emailShowWallets: true,
-  },
-})
-```
+Contains the Wagmi and Reown AppKit configuration, including:
+- Network configuration (XRPL EVM Testnet)
+- Chain setup
+- AppKit metadata
+- Wallet adapters
 
-## XRPL EVM Testnet Details
+### `src/contexts/ContextProvider.tsx`
 
-- **Chain ID**: 1440002
-- **Network Name**: XRPL EVM Testnet
-- **Currency**: XRP
-- **RPC URL**: https://rpc.testnet.xrplevm.org
-- **Explorer**: https://explorer.testnet.xrplevm.org
-- **Faucet**: https://faucet.testnet.xrplevm.org
-
-### Getting Testnet XRP
-
-1. Connect your wallet
-2. Copy your wallet address
-3. Visit the [XRPL EVM Testnet Faucet](https://faucet.testnet.xrplevm.org)
-4. Paste your address and request testnet XRP
-
-## Usage
-
-### Connect with Social Login
-
-1. Click "Connect Wallet"
-2. Select "Social" tab in the modal
-3. Choose your preferred provider (Google, X, GitHub, etc.)
-4. Authorize the connection
-5. Your wallet is created automatically!
-
-### Transfer XRP
-
-1. Ensure you're connected and on XRPL EVM Testnet
-2. Enter recipient address
-3. Enter amount in XRP
-4. Click "Send XRP"
-5. Confirm the transaction
-
-## Deployment
-
-### Vercel (Recommended)
-
-1. Push your code to GitHub
-2. Import project in Vercel
-3. Add environment variables:
-   - `NEXT_PUBLIC_PROJECT_ID`
-   - `NEXT_PUBLIC_APP_URL` (your Vercel URL)
-4. Deploy!
-
-### Update Reown Configuration
-
-After deployment:
-1. Update Reown Cloud dashboard with production URL
-2. Update all social provider redirect URIs
-3. Test social login on production
+Sets up the necessary providers:
+- WagmiProvider
+- QueryClientProvider
+- AppKit integration
 
 ## Troubleshooting
 
-### Social Login Not Working
+### Dependency Issues
 
-**Issue**: Social login modal appears but authentication fails
+If you encounter errors related to dependencies:
 
-**Solutions**:
-1. Verify `NEXT_PUBLIC_APP_URL` matches your actual URL
-2. Check Reown dashboard has correct redirect URIs
-3. Ensure all social providers are properly configured
-4. For local dev, verify ngrok URL hasn't changed
+1. **Delete node_modules and lock file:**
+   ```bash
+   rm -rf node_modules package-lock.json
+   ```
 
-### Wrong Network
+2. **Reinstall with exact versions:**
+   ```bash
+   npm install --legacy-peer-deps
+   ```
 
-**Issue**: App shows "Wrong Network"
+3. **Verify versions:**
+   ```bash
+   npm list @reown/appkit wagmi viem
+   ```
 
-**Solutions**:
-1. Click "Switch Network" button
-2. Approve network addition in your wallet
-3. Or manually add XRPL EVM Testnet to your wallet
+### Common Errors
 
-### Transaction Failures
+**React Hydration Error:**
+- Ensure React versions match exactly (18.3.1)
+- Check that overrides in package.json are applied
 
-**Issue**: Transfers fail or don't confirm
+**Wallet Connection Fails:**
+- Verify your `NEXT_PUBLIC_PROJECT_ID` is correct
+- Check browser console for errors
+- Ensure you're using the correct dependency versions
 
-**Solutions**:
-1. Ensure you have testnet XRP
-2. Check you're on XRPL EVM Testnet (Chain ID: 1440002)
-3. Verify recipient address is valid
-4. Try with a smaller amount
+**Build Errors:**
+- Clear Next.js cache: `rm -rf .next`
+- Rebuild: `npm run build`
 
-### Build Errors
+## Network Information
 
-**Issue**: TypeScript or build errors
+### XRPL EVM Testnet
 
-**Solutions**:
-```bash
-# Clear cache and reinstall
-rm -rf node_modules .next
-npm install
+- **Chain ID**: 1440002
+- **RPC URL**: https://rpc.testnet.xrplevm.org/
+- **Explorer**: https://evm-sidechain.xrpl.org/
+- **Currency**: XRP
 
-# Or with yarn
-rm -rf node_modules .next
-yarn install
-```
+### Getting Testnet XRP
 
-## Resources
-
-- [Reown AppKit Docs](https://docs.reown.com/appkit/overview)
-- [Wagmi Documentation](https://wagmi.sh)
-- [XRPL EVM Documentation](https://docs.xrplevm.org)
-- [Next.js Documentation](https://nextjs.org/docs)
-
-## Security Notes
-
-⚠️ **Important**:
-- Never commit `.env.local` or expose your Project ID unnecessarily
-- Use environment variables for all sensitive data
-- This is a testnet application - do not use with real funds
-- Always verify recipient addresses before sending
+To test the application, you'll need testnet XRP:
+1. Connect your wallet to the XRPL EVM Testnet
+2. Visit the [XRPL EVM Faucet](https://faucet.xrplevm.org/)
+3. Request testnet XRP tokens
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+When contributing to this project:
+
+1. **Never modify dependency versions** without extensive testing
+2. Follow the existing code style
+3. Test thoroughly on XRPL EVM Testnet
+4. Update documentation if needed
 
 ## License
 
-MIT License - feel free to use this code for your own projects!
+This project is available for educational and demonstration purposes.
 
----
+## Support
 
-Built with ❤️ using Reown AppKit and XRPL EVM Testnet
+For issues related to:
+- **Reown AppKit**: [Reown Documentation](https://docs.reown.com/)
+- **Wagmi**: [Wagmi Documentation](https://wagmi.sh/)
+- **XRPL**: [XRPL Documentation](https://xrpl.org/)
+
+## Acknowledgments
+
+Built with:
+- [Reown (formerly WalletConnect)](https://reown.com/)
+- [XRPL EVM Sidechain](https://xrplevm.org/)
+- [Wagmi](https://wagmi.sh/)
+- [Next.js](https://nextjs.org/)

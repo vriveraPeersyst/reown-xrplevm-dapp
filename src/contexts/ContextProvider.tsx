@@ -19,7 +19,7 @@ const metadata = {
   name: 'XRPL EVM Reown DApp',
   description: 'A simple dApp with social login and XRP transfers on XRPL EVM Testnet',
   url: 'https://reown-xrplevm-dapp.vercel.app',
-  icons: ['https://avatars.githubusercontent.com/u/212396159?s=400&u=e6209e7288089b693ce17849cf4ea1e895ec3729&v=4']
+  icons: ['https://peersyst-public-production.s3.eu-west-1.amazonaws.com/6ceeac0b-f6f0-4a4d-8aa0-fc3da5601d35.jpg']
 }
 
 // Create the modal - identical to working web app
