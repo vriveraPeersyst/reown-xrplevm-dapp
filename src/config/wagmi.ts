@@ -1,4 +1,4 @@
-import { cookieStorage, createStorage, http } from '@wagmi/core'
+import { cookieStorage, createStorage } from '@wagmi/core'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import { xrplevmTestnet } from '@reown/appkit/networks'
 
@@ -21,16 +21,10 @@ export const xrplevmMainnet = {
   },
   rpcUrls: {
     default: {
-      http: [
-        process.env.NEXT_PUBLIC_XRPL_MAINNET_RPC || 'https://rpc.xrplevm.org/',
-        'https://rpc.xrplevm.org/'
-      ],
+      http: ['https://rpc.xrplevm.org']
     },
     public: {
-      http: [
-        process.env.NEXT_PUBLIC_XRPL_MAINNET_RPC || 'https://rpc.xrplevm.org/',
-        'https://rpc.xrplevm.org/'
-      ],
+      http: ['https://rpc.xrplevm.org']
     },
   },
   blockExplorers: {
@@ -49,50 +43,17 @@ export const xrplevmMainnet = {
   testnet: false,
 } as const
 
-// Create networks array for AppKit (type compatible)
-export const appKitNetworks = [
-  xrplevmMainnet, 
-  {
-    ...xrplevmTestnet,
-    rpcUrls: {
-      default: {
-        http: [process.env.NEXT_PUBLIC_XRPL_RPC_URL || 'https://rpc.testnet.xrplevm.org/']
-      }
-    }
-  }
-]
-
 // Define the XRPL EVM networks for Wagmi
-export const networks = [
-  xrplevmMainnet,
-  xrplevmTestnet
-]
+export const networks = [xrplevmMainnet, xrplevmTestnet]
 
-// Create Wagmi adapter with XRPL EVM networks configuration
+// Create Wagmi adapter - keep it simple like the working web app
 export const wagmiAdapter = new WagmiAdapter({
   storage: createStorage({
-    storage: cookieStorage
+    storage: cookieStorage,
   }),
   ssr: true,
   projectId,
   networks,
 })
-
-// Log configuration for debugging
-if (typeof window !== 'undefined') {
-  console.log('XRPL EVM Networks Config:', {
-    mainnet: {
-      chainId: xrplevmMainnet.id,
-      name: xrplevmMainnet.name,
-      rpcUrl: 'https://rpc.xrplevm.org/',
-    },
-    testnet: {
-      chainId: xrplevmTestnet.id,
-      name: xrplevmTestnet.name,
-      rpcUrl: process.env.NEXT_PUBLIC_XRPL_RPC_URL || 'https://rpc.testnet.xrplevm.org/',
-    },
-    projectId: projectId
-  })
-}
 
 export const config = wagmiAdapter.wagmiConfig

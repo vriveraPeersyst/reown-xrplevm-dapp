@@ -69,20 +69,23 @@ export default function TransferXRP() {
     try {
       const value = parseEther(amount)
       
-      console.log('🚀 Sending XRP:', {
+      console.log('🚀 Initiating transfer:', {
         to: recipient,
         amount: amount,
         valueWei: value.toString(),
         chainId,
+        address,
       })
       
       // Simple transaction - let wagmi handle gas automatically
+      // Explicitly set gas to undefined to let wagmi estimate it
       sendTransaction({
         to: recipient as `0x${string}`,
         value,
+        gas: undefined, // Let wagmi estimate gas
       })
     } catch (error) {
-      console.error('Transfer failed:', error)
+      console.error('❌ Transfer failed:', error)
     }
   }
 
